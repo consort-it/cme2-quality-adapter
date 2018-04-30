@@ -1,0 +1,12 @@
+FROM openjdk:8-jdk as builder
+
+WORKDIR /microservice/
+
+ARG GRADLE_VERSION=4.5.1
+
+ADD src src
+COPY build.gradle .
+COPY settings.gradle .
+COPY gradlew .
+ADD gradle gradle
+COPY swagger.yaml .

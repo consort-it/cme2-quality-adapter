@@ -1,0 +1,142 @@
+swagger: "2.0"
+info:
+  description: "This services gathers Quality Gate information from different sources and prepares a summary report."
+  version: "1.0.0"
+  title: "Quality Backend"
+  termsOfService: "http://swagger.io/terms/"
+basePath: "/api/v1/quality-adapter"
+schemes:
+- "http"
+paths:
+  /{category}/{microservice}:
+    get:
+      tags:
+      - "QualityBackend"
+      description: "Get Quality Gate Information for each Microservice"
+      operationId: getQualityGateInformation
+      parameters:
+        - name: "microservices"
+          in: path
+          required: true
+          type: array
+          items:
+            type: string
+          collectionFormat: csv
+        - name: "category"
+          in: path
+          required: true
+          type: string
+          enum: &categories [CodeQuality, Builds, Contracts, Vulnerabilities, Bugs, SmokeTests, End2End, Logs]
+      responses:
+        200:
+          description: "Retrieve quality gate informations."
+          schema:
+            $ref: '#/definitions/QualityStatus'
+        401:
+          description: "Unauthorized Access."
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        403:
+          description: "Bad authorization credentials."
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        404:
+          description: "Requested resource could not be found."
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "Internal failure during processing your request occured."
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+definitions:
+  QualityStatus:
+    type: object
+    required:
+    - category
+    - generatedAt
+    properties:
+      category:
+        type: string
+        description: This quality status refers to which system.
+        enum: *categories
+      generatedAt:
+        type: string
+        format: date-time
+        description: The point in time when the status was retrieved. Should be in UTC.
+      details:
+        type: array
+        items:
+          $ref: '#/definitions/QualityDetail'
+
+  QualityDetail:
+    type: object
+    required:
+    - serviceName
+    - status
+    - generatedAt
+    properties:
+      serviceName:
+        type: string
+      status:
+        type: string
+        description: The status of this category or 'Unknown' if the status could not be retrieved.
+        enum:
+        - Passed
+        - Warning
+        - Failed
+        - Unknown
+        example: "Passed"
+      generatedAt:
+        type: string
+        format: date-time
+        description: The point in time when the status was retrieved. Should be in UTC.
+      ref:
+        type: string
+        description: The url of the metric of the related service.
+
+  ErrorResponse:
+    type: object
+    required:
+    - status
+    - message
+    - location
+    - time
+    properties:
+      status:
+        type: integer
+        description: "Represents the http status error that goes along with this error."
+      message:
+        type: string
+        description: "Should contain a short, meaningful description of the error case. Might be displayed to the end user."
+        example: "Could not create service 'some-name' because this service already exists."
+      trace:
+        type: array
+        description: "Contains a trace of errors if available. Only use for forwarding to developer. In case this is missing as it is optional use location to identify where error happened originally."
+        items:
+          $ref: "#/definitions/TracePoint"
+      location:
+        type: string
+        description: "Field that indicates where the error occured. This is a mandatory field and should be considered in case trace is not available."
+      time:
+        type: string
+        format: date-time
+        description: "The exact time the error occured within microservice."
+  TracePoint:
+    type: "object"
+    required:
+    - methodName
+    - fileName
+    - lineNumber
+    - className
+    - nativeMethod
+    properties:
+      methodName:
+        type: "string"
+      fileName:
+        type: "string"
+      lineNumber:
+        type: "integer"
+      className:
+        type: "string"
+      nativeMethod:
+        type: "boolean"

@@ -1,0 +1,95 @@
+apiVersion: apps/v1beta1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: quality-adapter-v1
+spec:
+  selector:
+    matchLabels:
+      app: quality-adapter-v1
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: quality-adapter-v1
+    spec:
+      containers:
+      - name: quality-adapter-v1
+        image: consortit-docker-cme-local.jfrog.io/quality-adapter:image-version
+        ports:
+        - containerPort: 8081
+        - containerPort: 8080
+        env:
+        - name: jwk_url
+          value: "https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_M4FyC0JPA/.well-known/jwks.json"
+        - name: jwk_alg
+          value: "RS256"
+        - name: jwk_kid
+          valueFrom:
+            secretKeyRef:
+              name: quality-adapter-secret
+              key: jwk_kid
+        - name: SONAR_QUBE_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: quality-adapter-secret
+              key: sonar_qube_token
+        - name: AUTHORIZATION_URL
+          value: "https://beets.auth.eu-central-1.amazoncognito.com/oauth2/token"
+        - name: COGNITO_USER
+          valueFrom:
+            secretKeyRef:
+              name: quality-adapter-secret
+              key: cognito_username
+        - name: COGNITO_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: quality-adapter-secret
+              key: cognito_password
+      imagePullSecrets:
+        - name: regsecret
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quality-adapter-v1
+  labels:
+    app: quality-adapter-v1
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 8080
+      name: external
+    - port: 81
+      protocol: TCP
+      targetPort: 8081
+      name: external2
+  selector:
+    app: quality-adapter-v1
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: quality-adapter-v1
+  labels:
+    app: quality-adapter-v1
+spec:
+  rules:
+  - host: "cme.dev.k8s.consort-it.de"
+    http:
+      paths:
+      - path: /api/v1/quality-adapter
+        backend:
+          serviceName: "quality-adapter-v1"
+          servicePort: 80
+      - path: /api/v1/quality-adapter/health
+        backend:
+          serviceName: "quality-adapter-v1"
+          servicePort: 81
+      - path: /api/v1/quality-adapter/metrics
+        backend:
+          serviceName: "quality-adapter-v1"
+          servicePort: 81
