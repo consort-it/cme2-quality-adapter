@@ -5,6 +5,6 @@ import spark.Request;
 public class RequestStub extends Request {
 
     public String params(String param) {
-        return "aws-costs-adapter";
+        return "aws-costs-adapter, quality-adapter";
     }
 }

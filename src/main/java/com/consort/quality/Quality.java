@@ -15,5 +15,11 @@ public class Quality {
 
     private String generatedAt;
 
+    private String ref;
+
+    private String status;
+
+    private Integer issueCount;
+
     private List<QualityDetails> details;
 }

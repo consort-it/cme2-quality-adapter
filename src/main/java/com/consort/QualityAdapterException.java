@@ -7,8 +7,8 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 @Getter
-@JsonIgnoreProperties({"cause", "stackTrace", "localizedMessage", "suppressed"})
-public class QualityAdapterException extends Exception {
+@JsonIgnoreProperties({ "cause", "stackTrace", "localizedMessage", "suppressed" })
+public class QualityAdapterException extends RuntimeException {
 
     private final int status;
 

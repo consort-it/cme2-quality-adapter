@@ -2,6 +2,8 @@ package com.consort;
 
 import com.consort.actuator.ActuatorRouteController;
 import com.consort.quality.QualityController;
+import com.consort.quality.QualityService;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -12,7 +14,7 @@ public class QualityAdapterApplication {
         log.info("Quality Adapter started!");
 
         // quality adapter
-        QualityController qualityController = new QualityController();
+        QualityController qualityController = new QualityController(new QualityService());
         qualityController.initRoutes();
 
         // actuator

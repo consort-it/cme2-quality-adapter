@@ -19,9 +19,11 @@ public class QualityHttpActionAdapter implements HttpActionAdapter<Object, Spark
 
         try {
             if (code == 401) {
-                Spark.halt(401, objectMapper.writeValueAsString(new QualityAdapterException(Errors.ERR_AUTH_FORBIDDEN, "AwsCostsHttpActionAdapter::adapt")));
+                Spark.halt(401, objectMapper.writeValueAsString(
+                        new QualityAdapterException(Errors.ERR_AUTH_FORBIDDEN, "QualityHttpActionAdapter::adapt")));
             } else if (code == 403) {
-                Spark.halt(403, objectMapper.writeValueAsString(new QualityAdapterException(Errors.ERR_AUTH_REQUIRED, "AwsCostsHttpActionAdapter::adapt")));
+                Spark.halt(403, objectMapper.writeValueAsString(
+                        new QualityAdapterException(Errors.ERR_AUTH_REQUIRED, "QualityHttpActionAdapter::adapt")));
             } else if (code == 200) {
                 Spark.halt(200, context.getSparkResponse().body());
             } else if (code == 302) {
@@ -29,7 +31,8 @@ public class QualityHttpActionAdapter implements HttpActionAdapter<Object, Spark
             }
         } catch (JsonProcessingException e) {
             // Fallback routine in case sophisticated error handling cant be done
-            log.error("CRITICAL ERROR when trying to process Exception. Can't provide proper Response sending nothing in body.");
+            log.error(
+                    "CRITICAL ERROR when trying to process Exception. Can't provide proper Response sending nothing in body.");
 
             if (code == 401) {
                 Spark.halt(401, Errors.ERR_AUTH_FORBIDDEN.getMessage());

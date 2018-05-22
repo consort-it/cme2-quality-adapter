@@ -4,20 +4,21 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
 @Builder
+@ToString
 @AllArgsConstructor
-public class QualityDetails {
+public class StaticCodeQualityDetails {
+    private int bugs;
 
-    private String serviceName;
+    private int vulnerabilities;
 
-    private String result;
+    private int codeSmells;
 
-    private String errorMessage;
-
-    private String ref;
+    private double coverage;
 
     private String generatedAt;
 }

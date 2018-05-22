@@ -8,12 +8,12 @@ basePath: "/api/v1/quality-adapter"
 schemes:
 - "http"
 paths:
-  /{category}/{microservice}:
+  /status/{category}/{microservices}:
     get:
       tags:
       - "QualityBackend"
-      description: "Get Quality Gate Information for each Microservice"
-      operationId: getQualityGateInformation
+      description: "Get some general quality gate information of a given categroy for each Microservice"
+      operationId: getQualityStatusForCategory
       parameters:
         - name: "microservices"
           in: path
@@ -31,7 +31,77 @@ paths:
         200:
           description: "Retrieve quality gate informations."
           schema:
-            $ref: '#/definitions/QualityStatus'
+            $ref: "#/definitions/QualityStatus"
+        401:
+          description: "Unauthorized Access."
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        403:
+          description: "Bad authorization credentials."
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        404:
+          description: "Requested resource could not be found."
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "Internal failure during processing your request occured."
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /code-quality/{microservices}:
+    get:
+      tags:
+      - "QualityBackend"
+      description: "Get cumulated specific static code quality Information for each Microservice"
+      operationId: getCodeQuality
+      parameters:
+        - name: "microservices"
+          in: path
+          required: true
+          type: array
+          items:
+            type: string
+          collectionFormat: csv
+      responses:
+        200:
+          description: "Retrieve static code quality informations."
+          schema:
+            $ref: "#/definitions/StaticCodeQuality"
+        401:
+          description: "Unauthorized Access."
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        403:
+          description: "Bad authorization credentials."
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        404:
+          description: "Requested resource could not be found."
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "Internal failure during processing your request occured."
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /qualityIndex/{microservices}:
+    get:
+      tags:
+      - "QualityBackend"
+      description: "Get the calculated quality index according to the magic formula"
+      operationId: getQualityIndex
+      parameters:
+        - name: "microservices"
+          in: path
+          required: true
+          type: array
+          items:
+            type: string
+          collectionFormat: csv
+      responses:
+        200:
+          description: "Retrieve quality gate informations."
+          schema:
+            $ref: '#/definitions/QualityIndex'
         401:
           description: "Unauthorized Access."
           schema:
@@ -53,21 +123,80 @@ definitions:
     type: object
     required:
     - category
+    - status
     - generatedAt
     properties:
       category:
         type: string
         description: This quality status refers to which system.
         enum: *categories
+      status:
+        type: string
+        description: The status of this category or 'Unknown' if the status could not be retrieved.
+        enum: &status
+          - Passed
+          - Warning
+          - Failed
+          - Unknown
+        example: "Passed"
+      issueCount:
+        type: integer
+        description: The number of issues Warning/Failure in this category.
+        example: 8
       generatedAt:
         type: string
         format: date-time
         description: The point in time when the status was retrieved. Should be in UTC.
+      ref:
+        type: string
+        description: A dashboard url of the related metric.
       details:
         type: array
         items:
           $ref: '#/definitions/QualityDetail'
-
+  StaticCodeQuality:
+    type: object
+    required:
+    - bugs
+    - vulnerabilities
+    - codeSmells
+    - coverage
+    - generatedAt
+    properties:
+      bugs:
+        type: integer
+        description: Cumulated amount of bugs.
+      vulnerabilities:
+        type: integer
+        description: Cumulated amount of vulnerabilities.
+      codeSmells:
+        type: integer
+        description: Cumulated amount of code smells.
+      coverage:
+        type: number
+        format: double
+        minimum: 0
+        exclusiveMinimum: false
+        maximum: 100
+        description: Cumulated amount of coverage in percent.
+        example: "Passed"
+      generatedAt:
+        type: string
+        format: date-time
+        description: The point in time when the status was retrieved. Should be in UTC.
+  QualityIndex:
+    type: object
+    required:
+    - value
+    - generatedAt
+    properties:
+      generatedAt:
+        type: string
+        format: date-time
+        description: The point in time when the status was retrieved. Should be in UTC.
+      value:
+        type: integer
+        description: Calculated health metric. Should be between 0 and 100.
   QualityDetail:
     type: object
     required:
@@ -80,11 +209,7 @@ definitions:
       status:
         type: string
         description: The status of this category or 'Unknown' if the status could not be retrieved.
-        enum:
-        - Passed
-        - Warning
-        - Failed
-        - Unknown
+        enum: *status
         example: "Passed"
       generatedAt:
         type: string
@@ -93,7 +218,6 @@ definitions:
       ref:
         type: string
         description: The url of the metric of the related service.
-
   ErrorResponse:
     type: object
     required:

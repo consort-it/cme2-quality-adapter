@@ -14,6 +14,11 @@ Environment variables:
 The REST API can be reached using `/api/v1/quality-adapter` as base Uri. Available endpoints as follows:
 
 ```
-# request the quality gate status of a service
-GET /{microservice}
+# request the quality gate status of a service for a specific quality category
+GET /status/{qualityCategory}/{microservices}
+
+# request quality index for services
+GET /qualityIndex/{microservices}
 ```
+
+Note: The `{microservices}` parameters accepts a comma-separated list of service names. Currently available quality categories are `CodeQuality` and `Builds`.
